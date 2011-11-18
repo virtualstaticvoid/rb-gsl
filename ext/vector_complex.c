@@ -1985,6 +1985,34 @@ static VALUE rb_gsl_vector_complex_zip(int argc, VALUE *argv, VALUE obj)
   free((gsl_vector_complex**) vp);
   return ary;
 }
+ 
+
+#ifdef GSL_1_15_LATER
+
+/* GSL 1.15 and later already have a gsl_vector_complex_equal function. */
+
+static VALUE rb_gsl_vector_complex_equal(int argc, VALUE *argv, VALUE obj)
+{
+  gsl_vector_complex *v1, *v2;
+  int ret;
+  switch (argc) {
+  case 1:
+    break;
+  default:
+    rb_raise(rb_eArgError, "Wrong number of arguments (%d for 1)\n", argc);
+  }
+  Data_Get_Struct(obj, gsl_vector_complex, v1);
+  CHECK_VECTOR_COMPLEX(argv[0]);
+  Data_Get_Struct(argv[0], gsl_vector_complex, v2);
+  ret = gsl_vector_complex_equal(v1, v2);
+  if (ret == 1) return Qtrue;
+  else return Qfalse;
+}
+
+#else
+
+/* GSL 1.14 and earlier do not have a gsl_vector_complex_equal function. We need
+ * to provide our own implementation for it. */
 
 static int gsl_vector_complex_equal_with_eps(const gsl_vector_complex *v1,
   const gsl_vector_complex *v2, double eps)
@@ -2023,6 +2051,8 @@ static VALUE rb_gsl_vector_complex_equal(int argc, VALUE *argv, VALUE obj)
   if (ret == 1) return Qtrue;
   else return Qfalse;
 }
+
+#endif
 
 static VALUE rb_gsl_vector_complex_not_equal(int argc, VALUE *argv, VALUE obj)
 {
